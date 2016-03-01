@@ -1,0 +1,37 @@
+{
+  "name": "angularjs-lite",
+  "author": "Nick S. Plekhanov",
+  "version": "0.1.0",
+  "license": "MIT",
+  "licenses": [
+    {
+      "type": "MIT",
+      "url": "https://github.com/nicksp/angulight/blob/master/LICENSE"
+    }
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nicksp/angulight.git"
+  },
+  "scripts": {
+    "lint": "jshint src test",
+    "test": "karma start"
+  },
+  "devDependencies": {
+    "browserify": "^12.0.2",
+    "jasmine-core": "^2.4.1",
+    "jshint": "^2.9.1",
+    "karma": "^0.13.21",
+    "karma-browserify": "^4.4.0",
+    "karma-jasmine": "^0.3.6",
+    "karma-jshint-preprocessor": "0.0.6",
+    "karma-phantomjs-launcher": "^0.2.1",
+    "phantomjs": "^1.9.19",
+    "sinon": "^1.17.2",
+    "uglifyjs": "^2.4.10"
+  },
+  "dependencies": {
+    "jquery": "^2.2.1",
+    "lodash": "^3.10.1"
+  }
+}

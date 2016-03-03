@@ -23,6 +23,7 @@ function noop() {}
 
 function Scope() {
   this.$$watchers = [];
+  this.$$lastDirtyWatch = null;
 }
 
 Scope.prototype.$watch = function (watchFn, listenerFn) {
@@ -32,6 +33,7 @@ Scope.prototype.$watch = function (watchFn, listenerFn) {
     last: initWatchVal
   };
   this.$$watchers.push(watcher);
+  this.$$lastDirtyWatch = null;
 };
 
 Scope.prototype.$$digestOnce = function () {
@@ -44,8 +46,11 @@ Scope.prototype.$$digestOnce = function () {
 
     if (newValue !== oldValue) {
       watcher.last = newValue;
+      _this.$$lastDirtyWatch = watcher;
       watcher.listenerFn(newValue, (oldValue === initWatchVal ? newValue : oldValue), _this);
       isDirty = true;
+    } else if (_this.$$lastDirtyWatch === watcher) {
+      return false;
     }
   });
   return isDirty;
@@ -54,6 +59,7 @@ Scope.prototype.$$digestOnce = function () {
 Scope.prototype.$digest = function () {
   var TTL = 10;
   var isDirty;
+  this.$$lastDirtyWatch = null;
 
   do {
     isDirty = this.$$digestOnce();

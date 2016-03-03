@@ -45,8 +45,8 @@ Scope.prototype.$$digestOnce = function () {
     oldValue = watcher.last;
 
     if (newValue !== oldValue) {
-      watcher.last = newValue;
       _this.$$lastDirtyWatch = watcher;
+      watcher.last = newValue;
       watcher.listenerFn(newValue, (oldValue === initWatchVal ? newValue : oldValue), _this);
       isDirty = true;
     } else if (_this.$$lastDirtyWatch === watcher) {

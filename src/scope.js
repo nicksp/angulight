@@ -26,10 +26,11 @@ function Scope() {
   this.$$lastDirtyWatch = null;
 }
 
-Scope.prototype.$watch = function (watchFn, listenerFn) {
+Scope.prototype.$watch = function (watchFn, listenerFn, objectEquality) {
   var watcher = {
     watchFn: watchFn,
     listenerFn: listenerFn || noop,
+    objectEquality: !!objectEquality,
     last: initWatchVal
   };
   this.$$watchers.push(watcher);
@@ -44,9 +45,9 @@ Scope.prototype.$$digestOnce = function () {
     newValue = watcher.watchFn(_this);
     oldValue = watcher.last;
 
-    if (newValue !== oldValue) {
+    if (!_this.$$areEqual(newValue, oldValue, watcher.objectEquality)) {
       _this.$$lastDirtyWatch = watcher;
-      watcher.last = newValue;
+      watcher.last = (watcher.objectEquality ? _.cloneDeep(newValue) : newValue);
       watcher.listenerFn(newValue, (oldValue === initWatchVal ? newValue : oldValue), _this);
       isDirty = true;
     } else if (_this.$$lastDirtyWatch === watcher) {
@@ -67,6 +68,14 @@ Scope.prototype.$digest = function () {
       throw '10 $digest() iterations reached';
     }
   } while (isDirty);
+};
+
+Scope.prototype.$$areEqual = function (newValue, oldValue, objectEquality) {
+  if (objectEquality) {
+    return _.isEqual(newValue, oldValue);
+  } else {
+    return newValue === oldValue;
+  }
 };
 
 module.exports = Scope;

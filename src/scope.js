@@ -24,6 +24,7 @@ function noop() {}
 function Scope() {
   this.$$watchers = [];
   this.$$lastDirtyWatch = null;
+  this.$$asyncQueue = [];
 }
 
 Scope.prototype.$watch = function (watchFn, listenerFn, objectEquality) {
@@ -63,6 +64,11 @@ Scope.prototype.$digest = function () {
   this.$$lastDirtyWatch = null;
 
   do {
+    while (this.$$asyncQueue.length) {
+      var asyncTask = this.$$asyncQueue.shift();
+      asyncTask.scope.$eval(asyncTask.expression);
+    }
+
     isDirty = this.$$digestOnce();
     if (isDirty && !(TTL--)) {
       throw '10 $digest() iterations reached';
@@ -91,5 +97,9 @@ Scope.prototype.$apply = function (expr) {
     this.$digest();
   }
 };
+
+Scope.prototype.$evalAsync = function (expr) {
+  this.$$asyncQueue.push({ scope: this, expression: expr });
+}
 
 module.exports = Scope;

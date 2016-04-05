@@ -100,6 +100,6 @@ Scope.prototype.$apply = function (expr) {
 
 Scope.prototype.$evalAsync = function (expr) {
   this.$$asyncQueue.push({ scope: this, expression: expr });
-}
+};
 
 module.exports = Scope;

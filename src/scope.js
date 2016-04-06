@@ -70,10 +70,10 @@ Scope.prototype.$digest = function () {
     }
 
     isDirty = this.$$digestOnce();
-    if (isDirty && !(TTL--)) {
+    if ((isDirty || this.$$asyncQueue.length) && !TTL--) {
       throw '10 $digest() iterations reached';
     }
-  } while (isDirty);
+  } while (isDirty || this.$$asyncQueue.length);
 };
 
 Scope.prototype.$$areEqual = function (newValue, oldValue, objectEquality) {

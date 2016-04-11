@@ -25,6 +25,8 @@ function Scope() {
   this.$$watchers = [];
   this.$$lastDirtyWatch = null;
   this.$$asyncQueue = [];
+  this.$$applyAsyncQueue = [];
+  this.$$applyAsyncId = null;
   this.$$phase = null;
 }
 
@@ -64,6 +66,11 @@ Scope.prototype.$digest = function () {
   var isDirty;
   this.$$lastDirtyWatch = null;
   this.$beginPhase('$digest');
+
+  if (this.$$applyAsyncId) {
+    clearTimeout(this.$$applyAsyncId);
+    this.$$flushApplyAsync();
+  }
 
   do {
     while (this.$$asyncQueue.length) {
@@ -117,6 +124,26 @@ Scope.prototype.$evalAsync = function (expr) {
   this.$$asyncQueue.push({ scope: this, expression: expr });
 };
 
+Scope.prototype.$applyAsync = function (expr) {
+  var _this = this;
+  this.$$applyAsyncQueue.push(function () {
+    _this.$eval(expr);
+  });
+
+  if (this.$$applyAsyncId === null) {
+    _this.$$applyAsyncId = setTimeout(function () {
+      _this.$apply(_.bind(_this.$$flushApplyAsync, _this));
+    }, 0);
+  }
+};
+
+Scope.prototype.$$flushApplyAsync = function () {
+  while (this.$$applyAsyncQueue.length) {
+    this.$$applyAsyncQueue.shift()();
+  }
+  this.$$applyAsyncId = null;
+};
+
 Scope.prototype.$beginPhase = function (phase) {
   if (this.$$phase) {
     throw this.$$phase + ' is already in progress.';
@@ -126,6 +153,6 @@ Scope.prototype.$beginPhase = function (phase) {
 
 Scope.prototype.$clearPhase = function () {
   this.$$phase = null;
-}
+};
 
 module.exports = Scope;

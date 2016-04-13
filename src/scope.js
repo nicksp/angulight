@@ -47,16 +47,20 @@ Scope.prototype.$$digestOnce = function () {
   var isDirty = false, newValue, oldValue;
 
   _.forEach(this.$$watchers, function (watcher) {
-    newValue = watcher.watchFn(_this);
-    oldValue = watcher.last;
+    try {
+      newValue = watcher.watchFn(_this);
+      oldValue = watcher.last;
 
-    if (!_this.$$areEqual(newValue, oldValue, watcher.objectEquality)) {
-      _this.$$lastDirtyWatch = watcher;
-      watcher.last = (watcher.objectEquality ? _.cloneDeep(newValue) : newValue);
-      watcher.listenerFn(newValue, (oldValue === initWatchVal ? newValue : oldValue), _this);
-      isDirty = true;
-    } else if (_this.$$lastDirtyWatch === watcher) {
-      return false;
+      if (!_this.$$areEqual(newValue, oldValue, watcher.objectEquality)) {
+        _this.$$lastDirtyWatch = watcher;
+        watcher.last = (watcher.objectEquality ? _.cloneDeep(newValue) : newValue);
+        watcher.listenerFn(newValue, (oldValue === initWatchVal ? newValue : oldValue), _this);
+        isDirty = true;
+      } else if (_this.$$lastDirtyWatch === watcher) {
+        return false;
+      }
+    } catch (e) {
+      console.error(e);
     }
   });
   return isDirty;
@@ -75,8 +79,12 @@ Scope.prototype.$digest = function () {
 
   do {
     while (this.$$asyncQueue.length) {
-      var asyncTask = this.$$asyncQueue.shift();
-      asyncTask.scope.$eval(asyncTask.expression);
+      try {
+        var asyncTask = this.$$asyncQueue.shift();
+        asyncTask.scope.$eval(asyncTask.expression);
+      } catch (e) {
+        console.error(e);
+      }
     }
 
     isDirty = this.$$digestOnce();
@@ -88,9 +96,15 @@ Scope.prototype.$digest = function () {
 
   this.$clearPhase();
 
+
   while (this.$$postDigestQueue.length) {
-    this.$$postDigestQueue.shift()();
+    try {
+      this.$$postDigestQueue.shift()();
+    } catch (e) {
+      console.error(e);
+    }
   }
+
 };
 
 Scope.prototype.$$areEqual = function (newValue, oldValue, objectEquality) {
@@ -148,7 +162,11 @@ Scope.prototype.$$postDigest = function (fn) {
 
 Scope.prototype.$$flushApplyAsync = function () {
   while (this.$$applyAsyncQueue.length) {
-    this.$$applyAsyncQueue.shift()();
+    try {
+      this.$$applyAsyncQueue.shift()();
+    } catch (e) {
+      console.error(e);
+    }
   }
   this.$$applyAsyncId = null;
 };

@@ -193,4 +193,51 @@ Scope.prototype.$clearPhase = function () {
   this.$$phase = null;
 };
 
+Scope.prototype.$watchGroup = function (watchFns, listenerFn) {
+  var _this = this;
+  var newValues = new Array(watchFns.length);
+  var oldValues = new Array(watchFns.length);
+  var changeReactionScheduled = false;
+  var firstRun = true;
+
+  if (watchFns.length === 0) {
+    var shouldCall = true;
+    _this.$evalAsync(function () {
+      if (shouldCall) {
+        listenerFn(newValues, newValues, _this);
+      }
+    });
+    return function () {
+      shouldCall = false;
+    };
+  }
+
+  function watchGroupListener() {
+    if (firstRun) {
+      firstRun = false;
+      listenerFn(newValues, newValues, _this);
+    } else {
+      listenerFn(newValues, oldValues, _this);
+    }
+    changeReactionScheduled = false;
+  }
+
+  var destroyFunctions = _.map(watchFns, function (watchFn, i) {
+    return _this.$watch(watchFn, function (newValue, oldValue) {
+      newValues[i] = newValue;
+      oldValues[i] = oldValue;
+      if (!changeReactionScheduled) {
+        changeReactionScheduled = true;
+        _this.$evalAsync(watchGroupListener);
+      }
+    });
+  });
+
+  return function () {
+    _.forEach(destroyFunctions, function (destroyFunction) {
+      destroyFunction();
+    });
+  };
+};
+
 module.exports = Scope;

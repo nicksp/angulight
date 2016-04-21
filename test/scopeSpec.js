@@ -903,10 +903,15 @@ describe('Scope', function () {
       var child = parent.$new();
 
       parent.aValue = [1, 2, 3];
+      parent.anotherValue = 12;
       child.aValue.push(4);
+      child.anotherValue = 6;
 
       expect(child.aValue).toEqual([1, 2, 3, 4]);
       expect(parent.aValue).toEqual([1, 2, 3, 4]);
+
+      expect(child.anotherValue).toEqual(6);
+      expect(parent.anotherValue).toEqual(12);
     });
 
     it('can watch a property on the parent', function () {
